@@ -1,0 +1,15 @@
+{
+	"name": "file-2-base64",
+	"version": "1.0.0",
+	"description": "This is an online tool for converting the contents of files to base64.",
+	"main": "index.html",
+	"scripts": {
+		"dev": "ws",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "Nicolas Marsceau",
+	"license": "Apache-2.0",
+	"devDependencies": {
+		"local-web-server": "^5.4.0"
+	}
+}

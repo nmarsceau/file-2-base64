@@ -1,0 +1,280 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>File 2 Base64</title>
+		<meta name="description" content="A simple tool to convert files to Base64 strings.">
+		<meta name="author" content="Nick Marsceau">
+		<link rel="icon" href="data:image/svg+xml;utf8,<svg height='21' viewBox='0 0 21 21' width='21' xmlns='http://www.w3.org/2000/svg'><g fill='none' fill-rule='evenodd' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' transform='translate(2 7)'><path d='m16.5 6.5c-3.1700033-4-6.1700033-6-9-6-2.82999674 0-5.16333008 1-7 3'/><path d='m11.5 6.5h5v-5'/></g></svg>">
+		<style>
+			:root {
+				--accentColor: #ff981a;
+				--warningColor: #ffd11a;
+				--textColor: #383838;
+			}
+
+			html, body {
+				margin: 0;
+				padding: 0;
+				font-family: monospace;
+			}
+
+			[data-hidden] {
+				display: none !important;
+			}
+
+			.pageContainer {
+				display: grid;
+				grid-template-rows: min-content min-content 1fr;
+				height: 100svh;
+			}
+
+			.header {
+				text-align: center;
+				color: var(--textColor);
+				margin-block: 0.3rem 0.6rem;
+			}
+
+			.about {
+				padding-inline: 1.25rem;
+				margin-block-start: 0;
+				text-align: center;
+			}
+
+			noscript {
+				display: block;
+				margin-inline: 1rem;
+
+				div {
+					display: block;
+					max-width: fit-content;
+					margin-inline: auto;
+					
+					svg, span {
+						vertical-align: middle;
+					}
+				}
+			}
+
+			.inputContainer {
+				text-align: center;
+				display: block;
+				box-sizing: border-box;
+				padding-inline: 1rem;
+			}
+
+			#files {
+				display: none;
+			}
+
+			label[for="files"] {
+				display: inline-block;
+
+				background-color: var(--accentColor);
+				color: var(--textColor);
+
+				font-size: 1.5em;
+				padding: 0.4em 1.5em 0.5em;
+				border-radius: 0.5rem;
+
+				box-sizing: border-box;
+				cursor: pointer;
+
+				svg {
+					transform: scale(1.6);
+					vertical-align: middle;
+					margin-inline-end: 0.5em;
+				}
+
+				span {
+					vertical-align: middle;
+				}
+
+				.hideOnHoverFocus {
+					display: inline;
+				}
+				
+				.showOnHoverFocus {
+					display: none;
+				}
+
+				&:hover, &:focus {
+					.hideOnHoverFocus {
+						display: none;
+					}
+
+					.showOnHoverFocus {
+						display: inline;
+					}
+				}
+			}
+
+			.outputContainer {
+				margin: 1rem;
+				overflow-y: auto;
+
+				@media screen and (min-width: 40em) {
+					max-width: 40em;
+					margin-inline: auto;
+				}
+
+				@media screen and (min-width: 75em) {
+					max-width: calc(100svw - 10rem);
+					columns: 30rem auto;
+				}
+			}
+
+			.dropIndicator {
+				display: none;
+			}
+
+			body.dragging {
+				.pageContainer {
+					filter: blur(5px);
+				}
+
+				.dropIndicator {
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					text-align: center;
+					position: fixed;
+					top: 0;
+					left: 0;
+					width: 100vw;
+					height: 100vh;
+					box-sizing: border-box;
+					border: 6px dashed var(--accentColor);
+					background-color: hsl(from var(--accentColor) h s l / 0.2);
+					color: var(--textColor);
+					font-size: 4em;
+				}
+			}
+
+			.message {
+				border-radius: 7px;
+				padding: 0.75em 1.5em;
+				margin-bottom: 1em;
+			}
+
+			.message-warning {
+				background-color: var(--warningColor);
+			}
+
+			.visuallyHidden {
+				clip: rect(0 0 0 0);
+				clip-path: inset(50%);
+				height: 1px;
+				overflow: hidden;
+				position: absolute;
+				white-space: nowrap;
+				width: 1px;
+			}
+		</style>
+	</head>
+	<body>
+		<main class="pageContainer">
+			<header>
+				<h1 class="header">File 2 Base64</h1>
+				<p class="about">
+					This utility converts files to Base64 strings.
+					<span class="visuallyHidden">
+						Select files with the file picker or drop them anywhere on the page.
+						Files will immediately be converted to Base64 and displayed below.
+						The outputs for each file have buttons to copy the Base64 string to the clipboard or to remove the file from the output.
+					</span>
+				</p>
+				<noscript>
+					<div class="message message-warning text-center" role="alert">
+						<svg aria-hidden="true" height="21" viewBox="0 0 21 21" width="21" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd" transform="translate(1 1)"><path d="m9.5.5 9 16h-18z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="m9.5 10.5v-5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9.5" cy="13.5" fill="currentColor" r="1"/></g></svg>
+						<span>JavaScript is required for this utility.</span>
+					</div>
+				</noscript>
+			</header>
+			<section class="inputContainer" data-hidden>
+				<label for="files" tabindex="0" aria-label="Select Files">
+					<svg class="hideOnHoverFocus" aria-hidden="true" height="21" viewBox="0 0 21 21" width="21" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" transform="translate(3 4)"><path d="m.5 1.5v9c0 1.1045695.8954305 2 2 2h10c1.1045695 0 2-.8954305 2-2v-6.00280762c.0007656-1.05436179-.8150774-1.91816512-1.8499357-1.99451426l-.1500643-.00468356-5 .00200544-2-2h-4c-.55228475 0-1 .44771525-1 1z"/><path d="m.5 2.5h7"/></g></svg>
+					<svg class="showOnHoverFocus" aria-hidden="true" height="21" viewBox="0 0 21 21" width="21" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" transform="translate(2 4)"><path d="m15.5 4.5c.000802-1.10737712-.8946285-2.00280762-1.999198-2.00280762l-5.000802.00280762-2-2h-4c-.55228475 0-1 .44771525-1 1v.99719238 2.00280762"/><path d="m.81056316 5.74177845 1.31072322 5.24326075c.22257179.8903496 1.02254541 1.5149608 1.94029301 1.5149608h8.87667761c.9177969 0 1.7178001-.6246768 1.9403251-1.5150889l1.3108108-5.24508337c.1339045-.53580596-.1919011-1.07871356-.727707-1.21261805-.079341-.0198283-.1608148-.02983749-.2425959-.02983749l-13.43852073.00188666c-.55228474.00007754-.99985959.44785564-.99985959 1.00014038 0 .08170931.01003737.16310922.02985348.24237922z"/></g></svg>
+					<span>Select Files</span>
+				</label>
+				<input type="file" name="files" id="files" multiple>
+			</section>
+			<script>document.querySelector(".inputContainer")?.removeAttribute("data-hidden")</script>
+			<section class="outputContainer"></section>
+		</main>
+		<div class="dropIndicator"><span>Drop files anywhere</span></div>
+		<script type="module">
+			import { CustomOutput } from "./customOutput.js"
+			customElements.define("custom-output", CustomOutput)
+
+			const inputContainer = document.querySelector(".inputContainer")
+			const filesInputLabel = inputContainer.querySelector('label[for="files"]')
+			const filesInput = inputContainer.querySelector("#files")
+			const outputContainer = document.querySelector(".outputContainer")
+
+			async function file2Base64(file) {
+				return new Promise((resolve, reject) => {
+					const reader = new FileReader()
+					reader.onload = () => resolve(reader.result)
+					reader.onerror = reject
+					reader.readAsDataURL(file)
+				})
+			}
+
+			async function updateFiles(files) {
+				outputContainer.textContent = ""
+				for (const file of files) {
+					const output = document.createElement("custom-output")
+					output.label = file.name
+					output.value = await file2Base64(file)
+					outputContainer.appendChild(output)
+				}
+			}
+
+			filesInputLabel.addEventListener("keydown", (event) => {
+				if (event.key === "Enter" || event.key === " ") {
+					event.preventDefault()
+					filesInput.click()
+				}
+			})
+
+			filesInput.addEventListener("change", async () => {
+				updateFiles(filesInput.files)
+			})
+
+			{
+				// File drag and drop
+				// https://stackoverflow.com/questions/3144881/how-do-i-detect-a-html5-drag-event-entering-and-leaving-the-window-like-gmail-d
+				((dropZone) => {
+					let showDrag = false, timeout = null
+
+					function startDrag(event) {
+						event.preventDefault()
+						showDrag = true
+						dropZone.classList.add("dragging")
+					}
+
+					function stopDrag(event) {
+						event.preventDefault()
+						showDrag = false
+						clearTimeout(timeout)
+						timeout = setTimeout(() => {
+							if (!showDrag) {
+								dropZone.classList.remove("dragging")
+							}
+						}, 150)
+					}
+
+					dropZone.addEventListener("dragover", startDrag)
+					dropZone.addEventListener("dragenter", startDrag)
+					dropZone.addEventListener("dragleave", stopDrag)
+					dropZone.addEventListener("drop", async (event) => {
+						stopDrag(event)
+						updateFiles(event.dataTransfer.files)
+					})
+				})(document.body)
+			}
+		</script>
+	</body>
+</html>
